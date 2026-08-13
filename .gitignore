@@ -1,0 +1,30 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Node modules
+node_modules/
+
+# Production build artifacts
+dist/
+dist-ssr/
+
+# Environment variables & secrets
+.env
+.env.local
+.env.*.local
+
+# Editor directories
+.vscode/
+.idea/
+
+# Testing & Coverage
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# OS garbage
+.DS_Store
+Thumbs.db

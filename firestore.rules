@@ -1,0 +1,65 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions for security checks
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isValidProductData() {
+      return request.resource.data.name is string
+          && request.resource.data.sku is string
+          && request.resource.data.price is number
+          && request.resource.data.price >= 0
+          && request.resource.data.availableStock is number
+          && request.resource.data.availableStock >= 0;
+    }
+
+    function isValidOrderData() {
+      return request.resource.data.customerName is string
+          && request.resource.data.customerName.size() > 0
+          && request.resource.data.status is string
+          && request.resource.data.totalAmount is number
+          && request.resource.data.totalAmount >= 0
+          && request.resource.data.totalItems is number
+          && request.resource.data.totalItems > 0;
+    }
+
+    function isValidOrderItemData() {
+      return request.resource.data.orderId is string
+          && request.resource.data.productId is string
+          && request.resource.data.quantity is number
+          && request.resource.data.quantity > 0
+          && request.resource.data.price is number
+          && request.resource.data.price >= 0;
+    }
+
+    // Products Collection Security Rules
+    match /products/{productId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidProductData();
+      // On update, prevent arbitrary client-side stock inflations
+      allow update: if isAuthenticated() 
+                    && isValidProductData()
+                    && request.resource.data.availableStock <= resource.data.availableStock;
+      allow delete: if isAuthenticated();
+    }
+
+    // Orders Collection Security Rules
+    match /orders/{orderId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidOrderData();
+      allow update, delete: if isAuthenticated();
+    }
+
+    // Order Items Collection Security Rules
+    match /orderItems/{itemId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidOrderItemData();
+      allow update, delete: if isAuthenticated();
+    }
+  }
+}
+
